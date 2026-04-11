@@ -45,21 +45,21 @@
       transition: opacity 0.4s ease, transform 0.4s ease;
     }
 
-    .joke-question {
+    .joke-bar .joke-q {
       color: #d0d0e0;
     }
 
-    .joke-punchline {
+    .joke-bar .joke-a {
       color: #00d4aa;
       font-weight: 600;
     }
 
-    .joke-fade-out {
+    .joke-bar .fade-out {
       opacity: 0;
       transform: translateY(-6px);
     }
 
-    .joke-fade-in {
+    .joke-bar .fade-in {
       opacity: 1;
       transform: translateY(0);
     }
@@ -97,8 +97,9 @@
     .card {
       position: relative;
       z-index: 1;
-      max-width: 520px;
-      padding: 3rem;
+      width: 90%;
+      max-width: 560px;
+      padding: 2.5rem 3rem;
       text-align: center;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -113,41 +114,119 @@
     }
 
     .avatar {
-      width: 100px;
-      height: 100px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
       background: linear-gradient(135deg, #6c63ff, #00d4aa);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.5rem;
-      margin: 0 auto 1.5rem;
+      font-size: 2rem;
+      margin: 0 auto 1rem;
       box-shadow: 0 0 30px rgba(108, 99, 255, 0.3);
     }
 
     h1 {
-      font-size: 2.2rem;
+      font-size: 2rem;
       font-weight: 700;
       background: linear-gradient(135deg, #ffffff, #a8a8ff);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.3rem;
     }
 
     .tagline {
-      font-size: 1rem;
+      font-size: 0.9rem;
       color: #00d4aa;
       font-weight: 500;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       letter-spacing: 0.5px;
     }
 
-    .bio {
-      font-size: 1.05rem;
-      line-height: 1.7;
-      color: #b0b0c0;
+    /* Joke generator area */
+    .joke-display {
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .joke-display .question {
+      font-size: 1.2rem;
+      color: #d0d0e0;
+      line-height: 1.6;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .joke-display .punchline {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #00d4aa;
+      margin-top: 0.75rem;
+      opacity: 0;
+      transform: translateY(10px) scale(0.95);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .joke-display .punchline.revealed {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .joke-display .placeholder {
+      color: #6a6a80;
+      font-size: 1.1rem;
+      font-style: italic;
+    }
+
+    .hit-me {
+      display: inline-block;
+      padding: 0.9rem 2.5rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: inherit;
+      color: #fff;
+      background: linear-gradient(135deg, #6c63ff, #5a52e0);
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(108, 99, 255, 0.3);
       margin-bottom: 2rem;
+    }
+
+    .hit-me:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 30px rgba(108, 99, 255, 0.5);
+    }
+
+    .hit-me:active {
+      transform: translateY(-1px);
+    }
+
+    .hit-me:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.5rem;
     }
 
     .links {
@@ -158,10 +237,10 @@
     }
 
     .links a {
-      padding: 0.6rem 1.4rem;
+      padding: 0.5rem 1.2rem;
       border-radius: 12px;
       text-decoration: none;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 500;
       transition: all 0.3s ease;
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -174,22 +253,11 @@
       border-color: rgba(108, 99, 255, 0.4);
       transform: translateY(-2px);
     }
-
-    .links a.primary {
-      background: linear-gradient(135deg, #6c63ff, #5a52e0);
-      border: none;
-      color: #fff;
-    }
-
-    .links a.primary:hover {
-      box-shadow: 0 4px 20px rgba(108, 99, 255, 0.4);
-      transform: translateY(-2px);
-    }
   </style>
 </head>
 <body>
   <div class="joke-bar">
-    <span id="joke-text" class="joke-question joke-fade-in"></span>
+    <span id="bar-text" class="joke-q fade-in"></span>
   </div>
 
   <div class="bg-glow glow-1"></div>
@@ -198,20 +266,23 @@
   <div class="card">
     <div class="avatar">DJ</div>
     <h1>DadJokez</h1>
-    <p class="tagline">Developer &bull; Creator &bull; Joke Enthusiast</p>
-    <p class="bio">
-      Building things on the internet, one bad pun at a time.
-      I write code by day and craft the world's finest dad jokes by night.
-      Yes, the jokes are free. No, I will not apologize.
-    </p>
+    <p class="tagline">AI-Powered Dad Jokes &bull; Groan Guaranteed</p>
+
+    <div class="joke-display" id="joke-display">
+      <p class="placeholder">Press the button. You know you want to.</p>
+    </div>
+
+    <button class="hit-me" id="hit-me">Hit Me</button>
+
     <div class="links">
-      <a href="#" class="primary" target="_blank" rel="noopener noreferrer">Get in Touch</a>
       <a href="https://github.com/DadJokez" target="_blank" rel="noopener noreferrer">GitHub</a>
       <a href="#" target="_blank" rel="noopener noreferrer">Twitter</a>
     </div>
   </div>
+
   <script>
-    const jokes = [
+    // --- Cycling joke bar (top) ---
+    const barJokes = [
       { q: "Why do programmers prefer dark mode?", a: "Because light attracts bugs!" },
       { q: "What do you call a fake noodle?", a: "An impasta!" },
       { q: "Why don't skeletons fight each other?", a: "They don't have the guts." },
@@ -229,47 +300,78 @@
       { q: "Why did the golfer bring two pairs of pants?", a: "In case he got a hole in one!" },
     ];
 
-    let current = 0;
-    const el = document.getElementById('joke-text');
+    let barIdx = 0;
+    const barEl = document.getElementById('bar-text');
 
-    function fadeOut() {
-      el.classList.remove('joke-fade-in');
-      el.classList.add('joke-fade-out');
+    function barFadeOut() {
+      barEl.classList.remove('fade-in');
+      barEl.classList.add('fade-out');
     }
 
-    function fadeIn() {
-      el.classList.remove('joke-fade-out');
-      el.classList.add('joke-fade-in');
-    }
-
-    function showQuestion() {
-      fadeOut();
+    function barShowQ() {
+      barFadeOut();
       setTimeout(() => {
-        el.className = 'joke-question joke-fade-in';
-        el.textContent = jokes[current].q;
-        fadeIn();
+        barEl.className = 'joke-q fade-in';
+        barEl.textContent = barJokes[barIdx].q;
       }, 400);
-
-      setTimeout(showPunchline, 3000);
+      setTimeout(barShowA, 3000);
     }
 
-    function showPunchline() {
-      fadeOut();
+    function barShowA() {
+      barFadeOut();
       setTimeout(() => {
-        el.className = 'joke-punchline joke-fade-in';
-        el.textContent = jokes[current].a;
-        fadeIn();
+        barEl.className = 'joke-a fade-in';
+        barEl.textContent = barJokes[barIdx].a;
       }, 400);
-
       setTimeout(() => {
-        current = (current + 1) % jokes.length;
-        showQuestion();
+        barIdx = (barIdx + 1) % barJokes.length;
+        barShowQ();
       }, 2500);
     }
 
-    // Start the cycle
-    el.textContent = jokes[0].q;
-    setTimeout(showPunchline, 3000);
+    barEl.textContent = barJokes[0].q;
+    setTimeout(barShowA, 3000);
+
+    // --- Interactive joke generator ---
+    const btn = document.getElementById('hit-me');
+    const display = document.getElementById('joke-display');
+    let firstJoke = true;
+
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Thinking...';
+
+      display.innerHTML = '';
+
+      try {
+        const res = await fetch('/api/joke');
+        if (!res.ok) throw new Error('API error');
+        const joke = await res.json();
+
+        // Show question
+        const qEl = document.createElement('p');
+        qEl.className = 'question';
+        qEl.textContent = joke.question;
+        display.appendChild(qEl);
+
+        // Show punchline after delay
+        const aEl = document.createElement('p');
+        aEl.className = 'punchline';
+        aEl.textContent = joke.punchline;
+        display.appendChild(aEl);
+
+        setTimeout(() => {
+          aEl.classList.add('revealed');
+        }, 2000);
+
+      } catch (err) {
+        display.innerHTML = '<p class="placeholder">Oops, joke machine broke. Try again!</p>';
+      }
+
+      btn.disabled = false;
+      btn.textContent = firstJoke ? 'Hit Me Again' : 'Another One';
+      firstJoke = false;
+    });
   </script>
 </body>
 </html>
