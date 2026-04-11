@@ -332,45 +332,67 @@
     barEl.textContent = barJokes[0].q;
     setTimeout(barShowA, 3000);
 
-    // --- Interactive joke generator ---
+    // --- Interactive joke generator with batch caching ---
     const btn = document.getElementById('hit-me');
     const display = document.getElementById('joke-display');
     let firstJoke = true;
+    let jokeQueue = [];
+    let fetching = false;
 
-    btn.addEventListener('click', async () => {
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span>Thinking...';
-
-      display.innerHTML = '';
-
+    async function fetchBatch() {
+      if (fetching) return;
+      fetching = true;
       try {
         const res = await fetch('/api/joke');
         if (!res.ok) throw new Error('API error');
-        const joke = await res.json();
+        const jokes = await res.json();
+        if (Array.isArray(jokes)) {
+          jokeQueue.push(...jokes);
+        }
+      } finally {
+        fetching = false;
+      }
+    }
 
-        // Show question
-        const qEl = document.createElement('p');
-        qEl.className = 'question';
-        qEl.textContent = joke.question;
-        display.appendChild(qEl);
+    function showJoke(joke) {
+      display.innerHTML = '';
 
-        // Show punchline after delay
-        const aEl = document.createElement('p');
-        aEl.className = 'punchline';
-        aEl.textContent = joke.punchline;
-        display.appendChild(aEl);
+      const qEl = document.createElement('p');
+      qEl.className = 'question';
+      qEl.textContent = joke.question;
+      display.appendChild(qEl);
 
-        setTimeout(() => {
-          aEl.classList.add('revealed');
-        }, 2000);
+      const aEl = document.createElement('p');
+      aEl.className = 'punchline';
+      aEl.textContent = joke.punchline;
+      display.appendChild(aEl);
 
-      } catch (err) {
+      setTimeout(() => aEl.classList.add('revealed'), 2000);
+    }
+
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+
+      // If queue is empty, fetch a new batch
+      if (jokeQueue.length === 0) {
+        btn.innerHTML = '<span class="spinner"></span>Thinking...';
+        await fetchBatch();
+      }
+
+      if (jokeQueue.length > 0) {
+        showJoke(jokeQueue.shift());
+      } else {
         display.innerHTML = '<p class="placeholder">Oops, joke machine broke. Try again!</p>';
       }
 
       btn.disabled = false;
       btn.textContent = firstJoke ? 'Hit Me Again' : 'Another One';
       firstJoke = false;
+
+      // Pre-fetch next batch when running low
+      if (jokeQueue.length <= 2) {
+        fetchBatch();
+      }
     });
   </script>
 </body>
