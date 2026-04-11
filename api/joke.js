@@ -20,7 +20,8 @@ export default async function handler(req, res) {
       ],
     });
 
-    const text = message.content[0].text.trim();
+    let text = message.content[0].text.trim();
+    text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
     const joke = JSON.parse(text);
 
     res.setHeader("Cache-Control", "no-store");
