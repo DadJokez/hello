@@ -14,12 +14,54 @@
     body {
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       background: #0a0a1a;
       color: #e0e0e0;
       overflow: hidden;
+    }
+
+    .joke-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      background: rgba(108, 99, 255, 0.12);
+      border-bottom: 1px solid rgba(108, 99, 255, 0.25);
+      backdrop-filter: blur(16px);
+      padding: 0.75rem 1.5rem;
+      text-align: center;
+      font-size: 0.95rem;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .joke-bar span {
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .joke-question {
+      color: #d0d0e0;
+    }
+
+    .joke-punchline {
+      color: #00d4aa;
+      font-weight: 600;
+    }
+
+    .joke-fade-out {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+
+    .joke-fade-in {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .bg-glow {
@@ -146,6 +188,10 @@
   </style>
 </head>
 <body>
+  <div class="joke-bar">
+    <span id="joke-text" class="joke-question joke-fade-in"></span>
+  </div>
+
   <div class="bg-glow glow-1"></div>
   <div class="bg-glow glow-2"></div>
 
@@ -164,5 +210,66 @@
       <a href="#">Twitter</a>
     </div>
   </div>
+  <script>
+    const jokes = [
+      { q: "Why do programmers prefer dark mode?", a: "Because light attracts bugs!" },
+      { q: "What do you call a fake noodle?", a: "An impasta!" },
+      { q: "Why don't skeletons fight each other?", a: "They don't have the guts." },
+      { q: "What did the ocean say to the beach?", a: "Nothing, it just waved." },
+      { q: "Why did the scarecrow win an award?", a: "He was outstanding in his field!" },
+      { q: "What do you call cheese that isn't yours?", a: "Nacho cheese!" },
+      { q: "Why couldn't the bicycle stand up by itself?", a: "It was two-tired!" },
+      { q: "What do you call a bear with no teeth?", a: "A gummy bear!" },
+      { q: "Why did the coffee file a police report?", a: "It got mugged!" },
+      { q: "What's orange and sounds like a parrot?", a: "A carrot!" },
+      { q: "Why don't eggs tell jokes?", a: "They'd crack each other up!" },
+      { q: "What did the grape do when it got stepped on?", a: "Nothing, it just let out a little wine." },
+      { q: "Why did the math book look so sad?", a: "It had too many problems." },
+      { q: "What do you call a dog that does magic?", a: "A Labracadabrador!" },
+      { q: "Why did the golfer bring two pairs of pants?", a: "In case he got a hole in one!" },
+    ];
+
+    let current = 0;
+    const el = document.getElementById('joke-text');
+
+    function fadeOut() {
+      el.classList.remove('joke-fade-in');
+      el.classList.add('joke-fade-out');
+    }
+
+    function fadeIn() {
+      el.classList.remove('joke-fade-out');
+      el.classList.add('joke-fade-in');
+    }
+
+    function showQuestion() {
+      fadeOut();
+      setTimeout(() => {
+        el.className = 'joke-question joke-fade-in';
+        el.textContent = jokes[current].q;
+        fadeIn();
+      }, 400);
+
+      setTimeout(showPunchline, 3000);
+    }
+
+    function showPunchline() {
+      fadeOut();
+      setTimeout(() => {
+        el.className = 'joke-punchline joke-fade-in';
+        el.textContent = jokes[current].a;
+        fadeIn();
+      }, 400);
+
+      setTimeout(() => {
+        current = (current + 1) % jokes.length;
+        showQuestion();
+      }, 2500);
+    }
+
+    // Start the cycle
+    el.textContent = jokes[0].q;
+    setTimeout(showPunchline, 3000);
+  </script>
 </body>
 </html>
