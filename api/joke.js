@@ -3,19 +3,26 @@ import Anthropic from "@anthropic-ai/sdk";
 const client = new Anthropic();
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
+  if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
+    const { avoid = [] } = req.body || {};
+    const avoidList = avoid.slice(0, 20);
+
+    let avoidClause = "";
+    if (avoidList.length > 0) {
+      avoidClause = `\n\nDo NOT repeat or rephrase any of these jokes:\n${avoidList.map((j) => `- ${j}`).join("\n")}`;
+    }
+
     const message = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 1500,
       messages: [
         {
           role: "user",
-          content:
-            'Generate 10 original dad jokes. Each one must be unique and different from the others. Be creative and varied in topics (food, animals, work, science, sports, etc). Respond with ONLY a valid JSON array in this exact format: [{"question": "the setup", "punchline": "the punchline"}]. No other text, no code fences.',
+          content: `Generate 10 original dad jokes. Each one must be unique and different from the others. Be creative and varied in topics (food, animals, work, science, sports, music, history, space, technology, weather, etc). Respond with ONLY a valid JSON array in this exact format: [{"question": "the setup", "punchline": "the punchline"}]. No other text, no code fences.${avoidClause}`,
         },
       ],
     });

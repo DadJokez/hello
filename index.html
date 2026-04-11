@@ -337,18 +337,25 @@
     const display = document.getElementById('joke-display');
     let firstJoke = true;
     let jokeQueue = [];
+    let recentJokes = []; // track recent setups to avoid repeats
     let fetching = false;
 
     async function fetchBatch() {
       if (fetching) return;
       fetching = true;
       try {
-        const res = await fetch('/api/joke');
+        const res = await fetch('/api/joke', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ avoid: recentJokes.slice(-20) }),
+        });
         if (!res.ok) throw new Error('API error');
         const jokes = await res.json();
         if (Array.isArray(jokes)) {
           jokeQueue.push(...jokes);
         }
+      } catch (err) {
+        console.error('Failed to fetch jokes:', err);
       } finally {
         fetching = false;
       }
@@ -367,7 +374,16 @@
       aEl.textContent = joke.punchline;
       display.appendChild(aEl);
 
-      setTimeout(() => aEl.classList.add('revealed'), 2000);
+      // Track this joke to avoid repeats
+      recentJokes.push(joke.question);
+
+      // Reveal punchline after 2s, then re-enable button
+      setTimeout(() => {
+        aEl.classList.add('revealed');
+        btn.disabled = false;
+        btn.textContent = firstJoke ? 'Hit Me Again' : 'Another One';
+        firstJoke = false;
+      }, 2000);
     }
 
     btn.addEventListener('click', async () => {
@@ -383,11 +399,9 @@
         showJoke(jokeQueue.shift());
       } else {
         display.innerHTML = '<p class="placeholder">Oops, joke machine broke. Try again!</p>';
+        btn.disabled = false;
+        btn.textContent = 'Try Again';
       }
-
-      btn.disabled = false;
-      btn.textContent = firstJoke ? 'Hit Me Again' : 'Another One';
-      firstJoke = false;
 
       // Pre-fetch next batch when running low
       if (jokeQueue.length <= 2) {
